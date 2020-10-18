@@ -1,12 +1,24 @@
 <?php
 
-function renderBody($search)
+function renderBody($results)
 {
-    return '<div class="container-fluid">
-                <div class="row">
-                    <div class="col-12">' . $search . '</div>
-                </div>
-            </div>';
+    $body = '<div class="jumbotron text-center">
+                <h1>Current problems</h1>
+             </div>
+             <div class="container-fluid">
+                <div class="row mt-5">';
+
+    foreach ($results as $result)
+    $body .= '<div class="col-12 my-3">
+                <h3>' . $result['name'] . '</h3>
+                <h5>' . $result['subject'] .'</h5>
+                <p>' . $result['summary'] .'</p>
+              </div>';
+
+
+    $body .= '</div></div>';
+
+    return $body;
 }
 
 function getMeta()

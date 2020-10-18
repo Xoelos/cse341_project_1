@@ -15,7 +15,7 @@ function dbConnect()
             $dbLink = new PDO($dsn);
             return $dbLink;
         } catch (PDOException $exc) {
-            include '../views/page.php';
+            include '../views/Page.php';
             require '../views/500.php';
             $search = new Page(get500(), render500());
             echo $search->page;
@@ -34,10 +34,7 @@ function dbConnect()
             $dbLink = new PDO($dsn);
             return $dbLink;
         } catch (PDOException $exc) {
-            echo $exc;
-            exit;
-
-            include '../views/page.php';
+            include '../views/Page.php';
             require '../views/500.php';
             $search = new Page(get500(), render500());
             echo $search->page;
