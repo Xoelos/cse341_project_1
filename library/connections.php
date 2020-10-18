@@ -22,7 +22,13 @@ function dbConnect()
             exit;
         }
     } else {
-        $dsn = getenv('DATABASE_URL');
+        $url = parse_url(getenv("DATABASE_URL"));
+
+        $host = $url["host"];
+        $username = $url["user"];
+        $password = $url["pass"];
+        $database = substr($url["path"], 1);
+        $dsn = 'pgsql:host=' . $host . ';dbname=' . $database . ';user=' . $username . ';password=' . $password;
 
         try {
             $dbLink = new PDO($dsn);
