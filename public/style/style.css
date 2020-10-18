@@ -1,0 +1,27 @@
+html body {
+height: 100%;
+}
+
+.noAnchor{
+    text-decoration: none;
+    color: inherit;
+}
+
+.noAnchor:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.minimum{
+    width: max-content;
+}
+
+.toast {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: max-content;
+}
