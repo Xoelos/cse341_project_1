@@ -1,7 +1,5 @@
 <?php
 
-echo $_SERVER['REMOTE_ADDR'];
-
 // Database Connections
 function acmeConnect()
 {
@@ -20,16 +18,10 @@ function acmeConnect()
             exit;
         }
     } else {
-        $url = getenv('JAWSDB_URL');
-        $dbparts = parse_url($url);
-
-        $hostname = $dbparts['host'];
-        $username = $dbparts['user'];
-        $password = $dbparts['pass'];
-        $database = ltrim($dbparts['path'], '/');
+        $url = getenv('DATABASE_URL');
 
         try {
-            $acmeLink = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
+            $acmeLink = new PDO($url);
             // set the PDO error mode to exception
             $acmeLink->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $acmeLink;
