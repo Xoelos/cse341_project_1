@@ -1,7 +1,5 @@
 <?php
 
-putenv('LOCAL_REF=');
-
 $scripts = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
 <script
         src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js'
@@ -13,4 +11,4 @@ $scripts = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jque
         integrity='sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM'
         crossorigin='anonymous'
 ></script>
-<script src='" . getenv('LOCAL_REF') . "/public/script/script.js'></script>";
+<script src='/public/script/script.js'></script>";
