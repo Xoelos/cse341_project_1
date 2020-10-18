@@ -1,6 +1,6 @@
 <?php
 
-putenv('LOCAL_REF=/W05');
+putenv('LOCAL_REF=');
 
 $navigation =
 '<nav class="navbar navbar-expand-lg navbar-dark bg-dark">

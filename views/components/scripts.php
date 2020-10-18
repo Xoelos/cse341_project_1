@@ -1,6 +1,6 @@
 <?php
 
-putenv('LOCAL_REF=/W05');
+putenv('LOCAL_REF=');
 
 $scripts = "<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
 <script

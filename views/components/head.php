@@ -1,6 +1,6 @@
 <?php
 
-putenv('LOCAL_REF=/W05');
+putenv('LOCAL_REF=');
 
 $headPre = '<head>
     <meta charset="UTF-8" />
