@@ -1,3 +1,2 @@
-ErrorDocument 404 “<H1>Page not found??</H1>”
-svouwerbguiowhbgwg
-wgwig
+ErrorDocument 404 /index.php?err=404
+ErrorDocument 500 /index.php?err=500
