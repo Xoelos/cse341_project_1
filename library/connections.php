@@ -22,14 +22,15 @@ function dbConnect()
             exit;
         }
     } else {
-        $url = getenv('DATABASE_URL');
+        $dsn = getenv('DATABASE_URL');
 
         try {
-            $dbLink = new PDO($url);
-            // set the PDO error mode to exception
-            $dbLink->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbLink = new PDO($dsn);
             return $dbLink;
         } catch (PDOException $exc) {
+            echo $exc;
+            exit;
+
             include '../views/page.php';
             require '../views/500.php';
             $search = new Page(get500(), render500());
