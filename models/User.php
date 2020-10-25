@@ -47,6 +47,10 @@ class User
             return null;
     }
 
+    function updateProfile($firstName, $lastName, $email, $summary) {
+        $userUpdate = new UserUpdate('users');
+    }
+
     function setById($id) {
         $userGet = new UserQuery('users');
         $user = $userGet->queryOne($id);

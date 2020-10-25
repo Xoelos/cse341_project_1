@@ -9,8 +9,8 @@ function renderBody($categories, $logout = null, $error = null)
                         <form id="search" method="GET" action="problems/index.php">
                              <input id="action" type="hidden" name="action" value="search">
                              <input id="searchTerm" type="text" class="form-control my-3" name="query" placeholder="Search by keyword">
-                             <select  id="searchTerm" class="custom-select my-3" name="category">
-                             <option selected="true" disabled="disabled">Search by Category</option>';
+                             <select  id="searchTerm" class="custom-select my-3" name="subject">
+                             <option selected="true" disabled="disabled">Search by Subject</option>';
     foreach ($categories as $index => $category) {
         $body .= "<option value='$category[name]'>$category[name]</option>";
     }

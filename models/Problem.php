@@ -34,8 +34,8 @@ class Problem
     }
 
     function create() {
-        $newProblem = new Create('problems', 'id, created_by, name, subject, summary');
-        return $newProblem->createRecord($_SESSION['logged'], $this->name, $this->subject, $this->summary);
+        $newProblem = new Create('problems', 'id, created_by, name, subject_id, summary');
+        return $newProblem->createRecord(array($_SESSION['logged'], $this->name, $this->subject, $this->summary));
     }
 }
 

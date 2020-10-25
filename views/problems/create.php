@@ -1,6 +1,6 @@
 <?php
 
-function renderBody($categories)
+function renderBody($categories, $success = false)
 {
     $body = '<div class="container-fluid text-center">
                 <div class="row mt-5">
@@ -14,11 +14,11 @@ function renderBody($categories)
                                   <input type="text" class="form-control" id="title" name="name" required>
                               </div>
                               <div class="col-12 col-md-3">
-                                  <label for="category">Category</label>
-                                  <select  id="category" class="custom-select" name="category">
-                                  <option selected="true" disabled="disabled">Category</option>';
+                                  <label for="subject">Subject</label>
+                                  <select  id="subject" class="custom-select" name="subject">
+                                  <option selected="true" disabled="disabled">Subject</option>';
                                  foreach ($categories as $index => $category) {
-                                     $body .= "<option value='$category[name]'>$category[name]</option>";
+                                     $body .= "<option value='$category[id]'>$category[name]</option>";
                                  }
 
                             $body .= '</select>
@@ -33,8 +33,19 @@ function renderBody($categories)
                           <button type="submit" class="btn btn-secondary px-5 mt-4">Create Thread</button>
                         </form>
                     </div>
-                </div>
-             </div>';
+                </div>';
+
+    if ($success) {
+        $body .= '<div class="row mt-5">
+                    <div class="col-12 col-md-4 offset-md-4">
+                        <div class="alert alert-success" role="alert">
+                            Your Problem has successfully been added!
+                        </div>
+                    </div>
+                  </div>';
+    }
+
+        $body .= '</div>';
 
     return $body;
 }

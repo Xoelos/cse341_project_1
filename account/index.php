@@ -108,6 +108,23 @@ switch ($action) {
         header('Location: /index.php?action=logout');
         break;
 
+    case 'updateAccount':
+        $firstName = filter_input(INPUT_POST, 'firstName', FILTER_SANITIZE_STRING);
+        $lastName = filter_input(INPUT_POST, 'lastName', FILTER_SANITIZE_STRING);
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        $summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
+
+        $newUser = new User();
+        $newUser->create();
+
+        header("Location: /problems/index.php?action=search&query=$name");
+        break;
+
+    case 'updatePassword':
+
+
+        break;
+
     // Show account page if logged in, otherwise show search
     default:
         if (!isset($_SESSION['logged']) || !$_SESSION['logged']) {
