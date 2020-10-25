@@ -1,55 +1,73 @@
 <?php
 
-include '../library/connections.php';
-include '../library/Query.php';
+include_once '../library/classes.php';
 
 if (session_id() == "")
     session_start();
 
-$results = null;
+/*
+ *  Grab action
+ */
+$action = null;
+if (filter_input(INPUT_POST, 'action') !== null)
+    $action = filter_input(INPUT_POST, 'action');
 
-if (!isset($_GET['search']) && !isset($_GET['category'])) {
-    $problemsQuery = new Query('problems');
-    $results = $problemsQuery->queryAll();
-} else if (!isset($_GET['category'])) {
-    if ($_GET['search'] !== '') {
-        $search = $_GET['search'];
-        $problemsQuery = new Query('problems');
-        $results = $problemsQuery->queryByColumns($search, array('name', 'summary'));
+if (filter_input(INPUT_GET, 'action') !== null)
+    $action = filter_input(INPUT_GET, 'action');
 
-    } else {
-        $problemsQuery = new Query('problems');
-        $results = $problemsQuery->queryAll();
+/*
+ * Control by action
+ */
+switch ($action) {
+    /*
+     * Search by term
+     */
+    case 'search':
+        include '../views/problems/problems.php';
 
-    }
-} else {
-    if ($_GET['search'] !== '' && $_GET['category'] !== '') {
-        $search = $_GET['search'];
-        $category = $_GET['category'];
-        $problemsQuery = new Query('problems');
-        $results = $problemsQuery->queryByColumnsWithValues($search, array('name', 'summary'), $category, 'subject');
+        $problem = new Problem(
+            isset($_GET['query']) ?
+                $_GET['query'] :
+                null,
+            isset($_GET['category']) ?
+                $_GET['category'] :
+                null,
+            null
+        );
 
-    } else if ($_GET['search'] !== '') {
-        $search = $_GET['search'];
-        $problemsQuery = new Query('problems');
-        $results = $problemsQuery->queryByColumns($search, array('name', 'summary'));
+        $results = $problem->queryProblems();
+        $question = new Page(getMeta(), renderBody($results));
+        echo $question->page;
+        break;
 
-    } else if ($_GET['category'] !== '') {
-        $category = $_GET['category'];
-        $problemsQuery = new Query('problems');
-        $results = $problemsQuery->queryByColumns($category, array('name', 'summary'));
+    /*
+     *  Create new problem
+     */
+    case 'create':
+        include '../views/problems/create.php';
 
-    } else {
-        $problemsQuery = new Query('problems');
-        $results = $problemsQuery->queryAll();
+        if(!isset($_SESSION['logged']) || !$_SESSION['logged']) {
+            header('Location: /index.php');
+            break;
+        }
+        $categoryQuery = new Query('subjects');
+        $categories = $categoryQuery->queryAll();
 
-    }
+        $createProblem = new Page(getMeta(), renderBody($categories));
+
+        echo $createProblem->page;
+        break;
+
+    /*
+     * Return a query of all
+     */
+    default:
+        include '../views/problems/problems.php';
+
+        $problem = new Problem(null, null, null);
+
+        $results = $problem->queryProblems();
+        $question = new Page(getMeta(), renderBody($results));
+        echo $question->page;
+        break;
 }
-
-
-include '../views/Page.php';
-include '../views/questions.php';
-$question = new Page(getMeta(), renderBody($results));
-
-echo $question->page;
-

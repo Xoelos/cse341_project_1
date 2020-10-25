@@ -10,10 +10,10 @@ function dbConnect()
         $user = "postgres";
         $password = "password";
         $dsn = 'pgsql:host=' . $server . ';port=' . $port . ';dbname=' . $database . ';user=' . $user . ';password=' . $password;
-
         try {
-            $dbLink = new PDO($dsn);
-            return $dbLink;
+            $db = new PDO($dsn);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            return $db;
         } catch (PDOException $exc) {
             include '../views/Page.php';
             require '../views/500.php';
@@ -31,8 +31,9 @@ function dbConnect()
         $dsn = 'pgsql:host=' . $host . ';dbname=' . $database . ';user=' . $username . ';password=' . $password;
 
         try {
-            $dbLink = new PDO($dsn);
-            return $dbLink;
+            $db = new PDO($dsn);
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            return $db;
         } catch (PDOException $exc) {
             include '../views/Page.php';
             require '../views/500.php';
