@@ -3,6 +3,9 @@
 include_once "$_SERVER[DOCUMENT_ROOT]/library/connections.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/library/Database.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/library/create/Create.php";
+include_once "$_SERVER[DOCUMENT_ROOT]/library/update/Update.php";
+include_once "$_SERVER[DOCUMENT_ROOT]/library/update/UserUpdate.php";
+include_once "$_SERVER[DOCUMENT_ROOT]/library/delete/Delete.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/library/query/Query.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/library/query/ProblemQuery.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/library/query/UserQuery.php";

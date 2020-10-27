@@ -108,6 +108,7 @@ switch ($action) {
         header('Location: /index.php?action=logout');
         break;
 
+    // Update User Profile
     case 'updateAccount':
         $firstName = filter_input(INPUT_POST, 'firstName', FILTER_SANITIZE_STRING);
         $lastName = filter_input(INPUT_POST, 'lastName', FILTER_SANITIZE_STRING);
@@ -115,15 +116,52 @@ switch ($action) {
         $summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
 
         $newUser = new User();
-        $newUser->create();
+        $success = $newUser->updateProfile($firstName, $lastName, $email, $summary);
 
-        header("Location: /problems/index.php?action=search&query=$name");
+        header("Location: /account/index.php?success=$success");
         break;
 
+    // Update User Password
     case 'updatePassword':
+        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
+        $passwordConfirmation = filter_input(INPUT_POST, 'passwordConfirmation', FILTER_SANITIZE_STRING);
 
+        $newUser = new User();
+        $hashedPassword = $newUser->passwordCheck($password, $passwordConfirmation);
 
+        if ($hashedPassword === 0) {
+            header("Location: /account/index.php?success=0");
+            break;
+        }
+
+        $success = $newUser->updatePassword($hashedPassword);
+
+        header("Location: /account/index.php?success=$success");
         break;
+
+    // Show user's posts
+    case 'problems':
+        if (!isset($_SESSION['logged']) || !$_SESSION['logged']) {
+            header('Location: /index.php');
+            break;
+        }
+
+        $problem = new Problem(null, null, null);
+        $results = $problem->queryByUserId($_SESSION['logged']);
+        $categoryQuery = new Query('subjects');
+        $categories = $categoryQuery->queryAll();
+
+        if (count($results) > 0) {
+            include '../views/account/problems.php';
+            $userProblems = new Page(getMeta(), renderBody($categories, $results));
+            echo $userProblems->page;
+            break;
+        } else {
+            include '../views/account/problems.php';
+            $userProblems = new Page(getMeta(), renderBody($categories, false));
+            echo $userProblems->page;
+            break;
+        }
 
     // Show account page if logged in, otherwise show search
     default:
@@ -133,14 +171,14 @@ switch ($action) {
         }
 
         $user = new User();
-        $success = $user->setById($_SESSION['logged']);
 
-        if ($success) {
+        if ($user->setById($_SESSION['logged'])) {
             include '../views/account/account.php';
-            $account = new Page(getMeta(), renderBody($user));
+            $account = new Page(getMeta(), renderBody($user, isset($_GET['success']) ? $_GET['success'] : null));
             echo $account->page;
             break;
         } else {
             header('Location: /account/index.php?action=login&error=true');
+            break;
         }
 }

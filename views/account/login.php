@@ -13,7 +13,7 @@ function renderBody($error = null)
                                 <label for="email">Email address</label>
                                 <input type="email" class="form-control" id="email" name="email" required>
                               </div>
-                              <div class="col-12 col-md-6 offset-md-3">
+                              <div class="col-12 col-md-6 offset-md-3 mt-3">
                                 <label for="password">Password</label>
                                 <input type="password" class="form-control" id="password" name="password" required>
                               </div>

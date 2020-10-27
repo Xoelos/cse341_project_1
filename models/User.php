@@ -25,6 +25,22 @@ class User
         $this->level = $level;
     }
 
+    function setById($id)
+    {
+        $userGet = new UserQuery('users');
+        $user = $userGet->queryOne($id);
+        if ($user) {
+            $this->firstName = $user['first_name'];
+            $this->lastName = $user['last_name'];
+            $this->email = $user['email'];
+            $this->summary = $user['summary'];
+            $this->level = $user['level'];
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     function register()
     {
         $userCreate = new Create('users', 'id, first_name, last_name, email, summary, password, level');
@@ -47,22 +63,28 @@ class User
             return null;
     }
 
-    function updateProfile($firstName, $lastName, $email, $summary) {
-        $userUpdate = new UserUpdate('users');
+    function updateProfile($firstName, $lastName, $email, $summary)
+    {
+        if (!$firstName || !$lastName || !$email)
+            return 0;
+
+        $data = array("first_name" => $firstName, "last_name" => $lastName, "email" => $email, "summary" => $summary);
+        $userUpdate = new Update('users');
+        return $userUpdate->updateById($_SESSION["logged"], $data);
     }
 
-    function setById($id) {
-        $userGet = new UserQuery('users');
-        $user = $userGet->queryOne($id);
-        if ($user) {
-            $this->firstName  = $user['first_name'];
-            $this->lastName  = $user['last_name'];
-            $this->email  = $user['email'];
-            $this->summary  = $user['summary'];
-            $this->level  = $user['level'];
-            return true;
-        } else {
-         return false;
-        }
+    function passwordCheck($p, $p2)
+    {
+        if ($p === $p2)
+            return password_hash($p, PASSWORD_DEFAULT);
+        else
+            return 0;
+    }
+
+    function updatePassword($password)
+    {
+        $data = array("password" => $password);
+        $userUpdate = new Update('users');
+        return $userUpdate->updateById($_SESSION["logged"], $data);
     }
 }

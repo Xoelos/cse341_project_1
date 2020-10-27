@@ -71,4 +71,18 @@ class ProblemQuery extends Query
         $stmt->closeCursor();
         return $results;
     }
+
+
+    function queryByUserId($query, $column)
+    {
+        $sql = "SELECT *
+                FROM $this->table
+                WHERE $column = :query";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':query',  $query , PDO::PARAM_INT);
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        return $results;
+    }
 }

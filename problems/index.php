@@ -76,6 +76,32 @@ switch ($action) {
         break;
 
     /*
+    *  POST Create a new problem
+    */
+    case 'updateProblem':
+        $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+        $subject = filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_NUMBER_INT);
+        $summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
+
+        $newProblem = new Problem($name, $subject, $summary);
+        $success = $newProblem->update();
+
+        header("Location: /problems/index.php?action=search&query=$name");
+        break;
+
+    /*
+    *  POST Create a new problem
+    */
+    case 'deleteProblem':
+        $id = filter_input(INPUT_POST, 'problemId', FILTER_SANITIZE_STRING);
+
+        $newProblem = new Problem(null, null, null);
+        $success = $newProblem->delete($id);
+
+        header("Location: /account/index.php?action=problems");
+        break;
+
+    /*
      * Return a query of all
      */
     default:

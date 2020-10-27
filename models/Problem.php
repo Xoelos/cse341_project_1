@@ -18,8 +18,6 @@ class Problem
 
     function queryProblems()
     {
-        require '../library/classes.php';
-
         $problemsQuery = new ProblemQuery('problems', '*', 'subjects', 'name');
 
         if ($this->name && $this->subject) {
@@ -33,9 +31,24 @@ class Problem
         }
     }
 
+    function queryByUserId($id) {
+        $problemsQuery = new ProblemQuery('problems', '*', 'subjects', 'name');
+        return $problemsQuery->queryByUserId($id, 'created_by');
+    }
+
     function create() {
-        $newProblem = new Create('problems', 'id, created_by, name, subject_id, summary');
-        return $newProblem->createRecord(array($_SESSION['logged'], $this->name, $this->subject, $this->summary));
+        $create = new Create('problems', 'id, created_by, name, subject_id, summary');
+        return $create->createRecord(array($_SESSION['logged'], $this->name, $this->subject, $this->summary));
+    }
+
+    function update() {
+        $update = new Update('problems');
+        return $update->updateById($_SESSION['logged'], array("name" => $this->name, "subject_id" => $this->subject, "summary" => $this->summary));
+    }
+
+    function delete($id) {
+        $delete = new Delete('problems');
+        return $delete->deleteById($id);
     }
 }
 
