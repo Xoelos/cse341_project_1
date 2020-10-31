@@ -1,8 +1,11 @@
 <?php
 
-function renderBody($categories, $success = false)
+
+class CreateProblemView extends View
 {
-    $body = '<div class="container-fluid text-center">
+    static function renderBody($categories, $success = null, $error = null)
+    {
+        $body = '<div class="container-fluid text-center">
                 <div class="row mt-5">
                     <div class="col-12 offset-md-3 col-md-6" >
                         <form id="createProblem" method="POST" action="/problems/index.php">
@@ -14,14 +17,14 @@ function renderBody($categories, $success = false)
                                   <input type="text" class="form-control" id="title" name="name" required>
                               </div>
                               <div class="col-12 col-md-3">
-                                  <label for="subject">Subject</label>
-                                  <select  id="subject" class="custom-select" name="subject">
-                                  <option selected="true" disabled="disabled">Subject</option>';
-                                 foreach ($categories as $index => $category) {
-                                     $body .= "<option value='$category[id]'>$category[name]</option>";
-                                 }
+                                  <label for="category">Categories</label>
+                                  <select  id="category" class="custom-select" name="category">
+                                  <option selected="true" disabled="disabled">Category</option>';
+        foreach ($categories as $index => $category) {
+            $body .= "<option value='$category[id]'>$category[name]</option>";
+        }
 
-                            $body .= '</select>
+        $body .= '</select>
                               </div>
                           </div>
                           <div class="row form-group">
@@ -35,22 +38,15 @@ function renderBody($categories, $success = false)
                     </div>
                 </div>';
 
-    if ($success) {
-        $body .= '<div class="row mt-5">
-                    <div class="col-12 col-md-4 offset-md-4">
-                        <div class="alert alert-success" role="alert">
-                            Your Problem has successfully been added!
-                        </div>
-                    </div>
-                  </div>';
-    }
-
+        $body .= parent::successAlert($success);
+        $body .= parent::errorAlert($error);
         $body .= '</div>';
 
-    return $body;
-}
+        return $body;
+    }
 
-function getMeta()
-{
-    return 'Project 1 | Register';
+    static function getMeta()
+    {
+        return 'Project 1 | Register';
+    }
 }

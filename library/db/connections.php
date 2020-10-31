@@ -15,10 +15,7 @@ function dbConnect()
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $db;
         } catch (PDOException $exc) {
-            include '../views/Page.php';
-            require '../views/500.php';
-            $search = new Page(get500(), render500());
-            echo $search->page;
+            echo Page::render(ErrorView::getMeta(), ErrorView::renderBody());
             exit;
         }
     } else {
@@ -35,10 +32,7 @@ function dbConnect()
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             return $db;
         } catch (PDOException $exc) {
-            include '../views/Page.php';
-            require '../views/500.php';
-            $search = new Page(get500(), render500());
-            echo $search->page;
+            echo Page::render(ErrorView::getMeta(), ErrorView::renderBody());
             exit;
         }
     }

@@ -1,8 +1,10 @@
 <?php
 
-function renderBody($error = null)
+class LoginView extends View
 {
-    $body = '<div class="container-fluid text-center">
+    static function renderBody($success = null, $error = null)
+    {
+        $body = '<div class="container-fluid text-center">
                 <div class="row mt-5">
                     <div class="col-12 offset-md-3 col-md-6" >
                         <form id="login" method="POST" action="/account/index.php">
@@ -23,22 +25,16 @@ function renderBody($error = null)
                     </div>
                 </div>';
 
-    if ($error) {
-        $body .= '<div class="row mt-5">
-                    <div class="col-12 col-md-4 offset-md-4">
-                        <div class="alert alert-danger" role="alert">
-                            Invalid Credentials!
-                        </div>
-                    </div>
-                  </div>';
+        $body .= parent::successAlert($success);
+        $body .= parent::errorAlert($error);
+
+        $body .= '</div>';
+
+        return $body;
     }
 
-    $body .= '</div>';
-
-    return $body;
-}
-
-function getMeta()
-{
-    return 'Project 1 | Login';
+    static function getMeta()
+    {
+        return 'Project 1 | Login';
+    }
 }

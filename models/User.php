@@ -2,89 +2,81 @@
 
 class User
 {
-    public string $err = "Invalid data: ";
-    public string $firstName = "";
-    public string $lastName = "";
-    public string $email = "";
-    public ?string $summary = null;
-    public string $password = "";
-    public int $level = 0;
-
-    function set($firstName, $lastName, $email, $password, $passwordConfirmation, $level)
+    // GET
+    public static function getById($id)
     {
-        if (!$firstName || !$lastName || !$email || !$password || !$passwordConfirmation) {
-            return $this->err .= "All fields must be filled!";
-        } else if ($password !== $passwordConfirmation) {
-            return $this->err .= "Password does not match!";
-        }
-
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
-        $this->password = password_hash($password, PASSWORD_DEFAULT);
-        $this->level = $level;
+        $query = new Query('users');
+        return $query->fields(['*'])->where('id', '=', $id)->get();
     }
 
-    function setById($id)
+    // POST
+    public static function register(string $firstName, string $lastName, string $email, string $summary, string $password, string $passwordConfirmation, int $level)
     {
-        $userGet = new UserQuery('users');
-        $user = $userGet->queryOne($id);
-        if ($user) {
-            $this->firstName = $user['first_name'];
-            $this->lastName = $user['last_name'];
-            $this->email = $user['email'];
-            $this->summary = $user['summary'];
-            $this->level = $user['level'];
-            return true;
-        } else {
+        $password = self::passwordCheck($password, $passwordConfirmation);
+
+        if (!$firstName || !$lastName || !$email || !$password)
             return false;
-        }
+
+        $create = new Create('users');
+
+        return $create->values([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'summary' => $summary,
+            'password' => $password,
+            'level' => $level
+        ])->insert();
     }
 
-    function register()
+    // POST
+    public static function login($email, $password)
     {
-        $userCreate = new Create('users', 'id, first_name, last_name, email, summary, password, level');
-        return $userCreate->createRecord(array($this->firstName, $this->lastName, $this->email, $this->summary, $this->password, $this->level));
+        $query = new Query('users');
+        $user = $query->fields(['*'])->where('email', '=', $email, false, true)->get();
+
+        return (!!$user && password_verify($password, $user['password'])) ? $user : null;
     }
 
-    function login($email, $password)
-    {
-        $userQuery = new UserQuery('users');
-        $userByEmail = $userQuery->queryOneByColumn($email, 'email');
-
-        if ($userByEmail)
-            $hashCheck = password_verify($password, $userByEmail['password']);
-        else
-            return null;
-
-        if ($hashCheck)
-            return $userByEmail;
-        else
-            return null;
-    }
-
-    function updateProfile($firstName, $lastName, $email, $summary)
+    // PUT
+    public static function updateProfile($session, $firstName, $lastName, $email, $summary)
     {
         if (!$firstName || !$lastName || !$email)
             return 0;
 
-        $data = array("first_name" => $firstName, "last_name" => $lastName, "email" => $email, "summary" => $summary);
-        $userUpdate = new Update('users');
-        return $userUpdate->updateById($_SESSION["logged"], $data);
+        $update = new Update('users');
+
+        return $update->fields([
+            'first_name',
+            'last_name',
+            'email',
+            'summary'
+        ])->where('id', '=', $session)->update([
+            $firstName,
+            $lastName,
+            $email,
+            $summary,
+            $session
+        ]);
     }
 
-    function passwordCheck($p, $p2)
+    public static function updatePassword($session, $password)
     {
-        if ($p === $p2)
+        if (!$password)
+            return 0;
+
+        $update = new Update('users');
+
+        return $update->fields(['password'])
+            ->where('id', '=', $session)
+            ->update([$password]);
+    }
+
+    public static function passwordCheck($p, $p2)
+    {
+        if ($p === $p2 && $p)
             return password_hash($p, PASSWORD_DEFAULT);
         else
             return 0;
-    }
-
-    function updatePassword($password)
-    {
-        $data = array("password" => $password);
-        $userUpdate = new Update('users');
-        return $userUpdate->updateById($_SESSION["logged"], $data);
     }
 }

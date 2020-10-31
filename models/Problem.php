@@ -2,53 +2,101 @@
 
 class Problem
 {
-    private ?string $name = null;
-    private ?string $subject = null;
-    private ?string $summary = null;
+    private ?string $id;
+    private ?string $name;
+    private ?string $category;
+    private ?string $summary;
 
-    public function __construct($name, $subject, $summary)
+    public function __construct($id = null, $name = null, $category = null, $summary = null)
     {
-        if ($name)
-            $this->name = $name;
-        if ($subject)
-            $this->subject = $subject;
-        if ($summary)
-            $this->summary = $summary;
+        $this->id = $id;
+        $this->name = $name;
+        $this->category = $category;
+        $this->summary = $summary;
     }
 
-    function queryProblems()
+    public static function getByUserId($id)
     {
-        $problemsQuery = new ProblemQuery('problems', '*', 'subjects', 'name');
+        $query = new Query('problems');
+        return $query->fields([
+            'problems.id',
+            'problems.created_by',
+            'problems.name',
+            'problems.summary',
+            'categories.name AS category',
+            'categories.id AS category_id'])
+            ->join('categories', 'id', 'category_id')
+            ->where('created_by', '=', $id)
+            ->getAll();
+    }
 
-        if ($this->name && $this->subject) {
-            return $problemsQuery->queryByTermAndSubject($this->name, $this->subject);
-        } else if ($this->name) {
-            return $problemsQuery->queryByTerm($this->name);
-        } else if ($this->subject) {
-            return $problemsQuery->queryBySubject($this->subject);
+    public static function queryProblems($name = null, $category = null)
+    {
+        $query = new Query('problems');
+
+        $query->fields([
+            'problems.id',
+            'problems.created_by',
+            'problems.name',
+            'problems.summary',
+            'categories.name AS category'
+        ]);
+
+        $query->join('categories', 'id', 'category_id');
+
+        if ($name && $category) {
+            return $query->statement(" WHERE ((LOWER(problems.name) LIKE LOWER(?) ")
+                ->statement("OR LOWER(problems.summary) LIKE LOWER(?)) ")
+                ->statement("AND categories.id = ?)")
+                ->pushToParams($name, true)
+                ->pushToParams($name, true)
+                ->pushToParams($category)
+                ->getAll();
+        } else if ($name) {
+            return $query->statement(' WHERE (LOWER(problems.name) LIKE LOWER(?) OR LOWER(problems.summary) LIKE LOWER(?)) ')
+                ->pushToParams($name, true)
+                ->pushToParams($name, true)
+                ->getAll();
+        } else if ($category) {
+            return $query->where('categories.id', '=', $category)
+                ->getAll();
         } else {
-            return $problemsQuery->queryAllProblems();
+            return $query->getAll();
         }
     }
 
-    function queryByUserId($id) {
-        $problemsQuery = new ProblemQuery('problems', '*', 'subjects', 'name');
-        return $problemsQuery->queryByUserId($id, 'created_by');
-    }
-
-    function create() {
-        $create = new Create('problems', 'id, created_by, name, subject_id, summary');
-        return $create->createRecord(array($_SESSION['logged'], $this->name, $this->subject, $this->summary));
-    }
-
-    function update() {
+    public static function update(int $id, string $name, int $category, string $summary)
+    {
         $update = new Update('problems');
-        return $update->updateById($_SESSION['logged'], array("name" => $this->name, "subject_id" => $this->subject, "summary" => $this->summary));
+
+        return $update->fields([
+            'name',
+            'category_id',
+            'summary'
+        ])->where('id', '=', $id)->update([
+            $name,
+            $category,
+            $summary,
+            $id
+        ]);
     }
 
-    function delete($id) {
+    public static function delete(int $id)
+    {
         $delete = new Delete('problems');
-        return $delete->deleteById($id);
+        return $delete->where('id', '=', $id)->delete();
+    }
+
+    function create($session, $name, $category, $summary)
+    {
+        $create = new Create('problems');
+
+        return $create->values([
+            'created_by' => $session,
+            'name' => $name,
+            'category_id' => $category,
+            'summary' => $summary
+        ])->insert();
     }
 }
 

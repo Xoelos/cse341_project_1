@@ -1,184 +1,164 @@
 <?php
 
-include_once '../library/classes.php';
+include_once "$_SERVER[DOCUMENT_ROOT]/library/imports.php";
 
-if (session_id() == "")
-    session_start();
+startSession();
+$session = grabSession();
+$action = grabAction();
+$error = grabError();
+$success = grabSuccess();
 
-// Grab action
-$action = null;
-if (filter_input(INPUT_POST, 'action') !== null)
-    $action = filter_input(INPUT_POST, 'action');
-
-if (filter_input(INPUT_GET, 'action') !== null)
-    $action = filter_input(INPUT_GET, 'action');
-
-
+/*
+ * Control by action
+ */
 switch ($action) {
 
-    // Show Register page
+    // GET Show Register page
     case 'register':
-        include '../views/account/register.php';
-
-        if (isset($_SESSION['logged']) && $_SESSION['logged']) {
-            header('Location: /account/index.php');
-            break;
-        }
-
-        $register = new Page(getMeta(), renderBody());
-
-        echo $register->page;
+        middleware(false, $session);
+        echo Page::render(RegistrationView::getMeta(), RegistrationView::renderBody($success, $error));
+        setSuccess(null);
+        setError(null);
         break;
 
-    // Register New Account
+    // POST Register New Account
     case 'registerPost':
-        if (isset($_SESSION['logged']) && $_SESSION['logged']) {
+        middleware(false, $session);
+
+        $firstName = filter_input(INPUT_POST, 'firstName', FILTER_SANITIZE_STRING);
+        $lastName = filter_input(INPUT_POST, 'lastName', FILTER_SANITIZE_STRING);
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
+        $confirm = filter_input(INPUT_POST, 'passwordConfirmation', FILTER_SANITIZE_STRING);
+
+        $id = User::register($firstName, $lastName, $email, '', $password, $confirm, 0);
+
+        if ($id) {
+            $_SESSION['logged'] = $id;
+            $_SESSION['name'] = $firstName;
+            setSuccess(null);
+            setError(null);
             header('Location: /account/index.php');
-            break;
+        } else {
+            setSuccess(null);
+            setError("Unable to register account, please try again!");
+            header('Location: /account/index.php?action=register');
         }
 
-        $newUser = new User();
-        $error = $newUser->set(
-            isset($_POST['firstName']) ?
-                $_POST['firstName'] :
-                null,
-            isset($_POST['lastName']) ?
-                $_POST['lastName'] :
-                null,
-            isset($_POST['email']) ?
-                $_POST['email'] :
-                null,
-            isset($_POST['password']) ?
-                $_POST['password'] :
-                null,
-            isset($_POST['passwordConfirmation']) ?
-                $_POST['passwordConfirmation'] :
-                null,
-            0);
-
-        if ($error) {
-            echo $error;
-            exit;
-        }
-
-        $userId = $newUser->register();
-
-        if ($userId)
-            $_SESSION['logged'] = $userId;
-
-        header('Location: /account/index.php');
         break;
 
-    // Show Login page
+    // GET Login page
     case 'login':
-        include '../views/account/login.php';
+        middleware(false, $session);
 
-        if (isset($_SESSION['logged']) && $_SESSION['logged']) {
+        setSuccess(null);
+        setError(null);
+
+        echo Page::render(LoginView::getMeta(), LoginView::renderBody($success, $error));
+        break;
+
+    // POST Login User
+    case 'loginPost':
+        middleware(false, $session);
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+        $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_EMAIL);
+
+        $user = User::login($email, $password);
+
+        if ($user) {
+            $_SESSION['logged'] = $user['id'];
+            $_SESSION['name'] = $user['first_name'];
+            setSuccess("You have successfully logged in!");
+            setError(null);
+
             header('Location: /account/index.php');
             break;
-        }
-
-        if (isset($_GET['error']))
-            $login = new Page(getMeta(), renderBody(true));
-        else
-            $login = new Page(getMeta(), renderBody(false));
-
-        echo $login->page;
-        break;
-
-    // Login User
-    case 'loginPost':
-        if (isset($_SESSION['logged']) && $_SESSION['logged']) {
-            header('Location: /index.php');
+        } else {
+            setSuccess(null);
+            setError("Could not log in, please try again!");
+            header('Location: /account/index.php?action=login');
             break;
         }
-
-        $visitor = new User();
-        $user = $visitor->login($_POST['email'], $_POST['password']);
-
-        if ($user)
-            $_SESSION['logged'] = $user['id'];
-
-        header('Location: /account/index.php');
-        break;
 
     // Show Logout page
     case 'logout':
-        $_SESSION['logged'] = null;
-        header('Location: /index.php?action=logout');
+        middleware(true, $session);
+        unset($_SESSION['logged']);
+        unset($_SESSION['name']);
+
+        setSuccess("You have successfully logged out!");
+        setError(null);
+        header('Location: /index.php');
         break;
 
     // Update User Profile
     case 'updateAccount':
+        middleware(true, $session);
+
         $firstName = filter_input(INPUT_POST, 'firstName', FILTER_SANITIZE_STRING);
         $lastName = filter_input(INPUT_POST, 'lastName', FILTER_SANITIZE_STRING);
         $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
         $summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
 
-        $newUser = new User();
-        $success = $newUser->updateProfile($firstName, $lastName, $email, $summary);
+        $user = new User();
+        $success = $user->updateProfile($session, $firstName, $lastName, $email, $summary);
 
-        header("Location: /account/index.php?success=$success");
+        $success ? setSuccess("You have successfully updated your profile!") : setSuccess(null);
+        !$success ? setError("Error: unable to update profile!") : setError(null);
+
+        header("Location: /account/index.php");
         break;
 
     // Update User Password
     case 'updatePassword':
+        middleware(true, $session);
+
         $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
         $passwordConfirmation = filter_input(INPUT_POST, 'passwordConfirmation', FILTER_SANITIZE_STRING);
+        $hashedPassword = User::passwordCheck($password, $passwordConfirmation);
 
-        $newUser = new User();
-        $hashedPassword = $newUser->passwordCheck($password, $passwordConfirmation);
 
-        if ($hashedPassword === 0) {
-            header("Location: /account/index.php?success=0");
+        if (!$hashedPassword) {
+            setSuccess(null);
+            setError("Password does not match!");
+            header("Location: /account/index.php");
             break;
         }
 
-        $success = $newUser->updatePassword($hashedPassword);
+        User::updatePassword($session, $hashedPassword);
 
-        header("Location: /account/index.php?success=$success");
+        setSuccess("You have successfully updated your password!");
+        setError(null);
+
+        header("Location: /account/index.php");
         break;
 
-    // Show user's posts
+    // Show User's Posts
     case 'problems':
-        if (!isset($_SESSION['logged']) || !$_SESSION['logged']) {
-            header('Location: /index.php');
-            break;
-        }
+        middleware(true, $session);
 
-        $problem = new Problem(null, null, null);
-        $results = $problem->queryByUserId($_SESSION['logged']);
-        $categoryQuery = new Query('subjects');
-        $categories = $categoryQuery->queryAll();
+        $categories = Category::queryAll();
+        $results = Problem::getByUserId($session);
 
-        if (count($results) > 0) {
-            include '../views/account/problems.php';
-            $userProblems = new Page(getMeta(), renderBody($categories, $results));
-            echo $userProblems->page;
-            break;
-        } else {
-            include '../views/account/problems.php';
-            $userProblems = new Page(getMeta(), renderBody($categories, false));
-            echo $userProblems->page;
-            break;
-        }
+        echo Page::render(MyProblemsView::getMeta(), MyProblemsView::renderBody($categories, $results, $success, $error));
+        setSuccess(null);
+        setError(null);
+        break;
 
     // Show account page if logged in, otherwise show search
     default:
-        if (!isset($_SESSION['logged']) || !$_SESSION['logged']) {
-            header('Location: /index.php');
-            break;
-        }
+        middleware(true, $session);
 
-        $user = new User();
-
-        if ($user->setById($_SESSION['logged'])) {
-            include '../views/account/account.php';
-            $account = new Page(getMeta(), renderBody($user, isset($_GET['success']) ? $_GET['success'] : null));
-            echo $account->page;
-            break;
-        } else {
-            header('Location: /account/index.php?action=login&error=true');
-            break;
+        $user = User::getById($session);
+        if ($user) {
+            echo Page::render(AccountView::getMeta(), AccountView::renderBody($user, $success, $error));
+            setSuccess(null);
+            setError(null);
         }
+        else {
+            setSuccess(null);
+            setError(null);
+            header("Location: /account/index.php?action=logout");
+        }
+        break;
 }

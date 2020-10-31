@@ -3,27 +3,27 @@
 
 class Page
 {
-    public string $page;
 
-    function __construct($meta, $body) {
+    public static function render($meta, $body, $session = null) {
+        include "$_SERVER[DOCUMENT_ROOT]/views/components/head.php";
         include "$_SERVER[DOCUMENT_ROOT]/views/components/navigation.php";
         include "$_SERVER[DOCUMENT_ROOT]/views/components/scripts.php";
 
         if(isset($navigation) && isset($scripts)) {
-            $this->page = '<!DOCTYPE html>
-                           <html lang="en">';
-            $this->page .= $this->makeHead($meta);
-            $this->page .= '<body>';
-            $this->page .= $navigation;
-            $this->page .= $body;
-            $this->page .= $scripts;
-            $this->page .= '</body>
-                            </html>';
+            $page = '<!DOCTYPE html><html lang="en">';
+            $page .= self::makeHead($meta);
+            $page .= '<body>';
+            $page .= $navigation;
+            $page .= $body;
+            $page .= $scripts;
+            $page .= '</body></html>';
+            return $page;
+
         }
+        return '<h1>Error!</h1>';
     }
 
-    function makeHead($meta) {
-        include "$_SERVER[DOCUMENT_ROOT]/views/components/head.php";
+    private static function makeHead($meta) {
         if(isset($headPre) && isset($headPost))
             return $headPre . $meta . $headPost;
         else
@@ -31,13 +31,14 @@ class Page
                         <meta charset='UTF-8' />
                         <meta name='viewport' content='width=device-width, initial-scale=1.0' />
                         <title>Project 1</title>
-                        <link rel='stylesheet' href='$_SERVER[DOCUMENT_ROOT]/public/style/style.css' />
+                        <link rel='stylesheet' href='/public/style/style.css' />
                         <link
                                 rel='stylesheet'
                                 href='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css'
                                 integrity='sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T'
                                 crossorigin='anonymous'
                         />
+                        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
                     </head>";
     }
 }

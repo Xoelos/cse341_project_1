@@ -3,28 +3,31 @@
 
 class Update extends Database
 {
-    function updateById($id, $data) {
-        $sql = "UPDATE $this->table SET ";
-        $i = 0;
-        $length = count($data);
+    function __construct(string $table)
+    {
+        parent::__construct($table);
+        $this->sql .= "UPDATE $this->table SET ";
+    }
 
-        foreach ($data as $column=>$updateValue) {
-            $sql .= "$column = :$column";
-            if ($i !== $length - 1)
-                $sql .= ", ";
-            $i++;
+    function fields(array $fields)
+    {
+        foreach ($fields as $field) {
+            $this->sql .= "$field = ?, ";
         }
-        $sql .= " WHERE id = :id";
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $this->sql = rtrim($this->sql, ', ');
+        return $this;
+    }
 
-        foreach ($data as $column=>$updateValue) {
-            $stmt->bindValue(":$column", $updateValue, PDO::PARAM_STR);
+    function update(array $values)
+    {
+        $stmt = $this->db->prepare($this->sql);
+        foreach ($values as $column => $value) {
+            $stmt->bindValue($column + 1, $value);
         }
 
         $stmt->execute();
-        $results = $stmt->rowCount(PDO::FETCH_ASSOC);
+        $results = $stmt->rowCount();
         $stmt->closeCursor();
         return $results;
     }

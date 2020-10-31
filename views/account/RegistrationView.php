@@ -1,8 +1,11 @@
 <?php
 
-function renderBody()
+
+class RegistrationView extends View
 {
-    $body = '<div class="container-fluid text-center">
+    static function renderBody($success = null, $error = null)
+    {
+        $body = '<div class="container-fluid text-center">
                 <div class="row mt-5">
                     <div class="col-12 offset-md-3 col-md-6" >
                         <form id="register" method="POST" action="/account/index.php">
@@ -38,13 +41,17 @@ function renderBody()
                           <button type="submit" class="btn btn-secondary px-5 mt-4">Register</button>
                         </form>
                     </div>
-                </div>
-             </div>';
+                </div>';
 
-    return $body;
-}
+            $body .= parent::successAlert($success);
+            $body .= parent::errorAlert($error);
+            $body .= '</div>';
 
-function getMeta()
-{
-    return 'Project 1 | Register';
+        return $body;
+    }
+
+    static function getMeta()
+    {
+        return 'Project 1 | Register';
+    }
 }

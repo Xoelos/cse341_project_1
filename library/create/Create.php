@@ -2,22 +2,41 @@
 
 class Create extends Database
 {
-    function createRecord($values)
+    public array $values = [];
+
+    function __construct(string $table)
     {
-        $sql = "INSERT INTO $this->table ($this->fields) VALUES (DEFAULT, ";
-        foreach ($values as $index=>$value) {
-            if ($index == sizeof($values) - 1){
-                $sql .= '?';
-            } else {
-                $sql .= '?, ';
-            }
+        parent::__construct($table);
+        $this->sql .= "INSERT INTO $table (";
+    }
+
+    function values(array $values)
+    {
+        $this->values = $values;
+        return $this;
+    }
+
+    function insert() {
+        foreach ($this->values as $column => $value) {
+            $this->sql .= "$column, ";
         }
-        $sql .= ")";
 
-        $stmt = $this->db->prepare($sql);
+        $this->sql = rtrim($this->sql, ', ');
+        $this->sql .= ") VALUES (";
 
-        foreach ($values as $index=>$value) {
-            $stmt->bindValue($index + 1, $value);
+        foreach ($this->values as $column => $value) {
+            $this->sql .= "?, ";
+        }
+
+        $this->sql = rtrim($this->sql, ', ');
+        $this->sql .= ")";
+
+        $stmt = $this->db->prepare($this->sql);
+
+        $i = 1;
+        foreach ($this->values as $index => $value) {
+            $stmt->bindValue($i, $value);
+            $i++;
         }
 
         $stmt->execute();

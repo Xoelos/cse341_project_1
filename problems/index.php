@@ -1,116 +1,101 @@
 <?php
 
-include_once '../library/classes.php';
+include_once "$_SERVER[DOCUMENT_ROOT]/library/imports.php";
 
-if (session_id() == "")
-    session_start();
+startSession();
+$session = grabSession();
+$action = grabAction();
+$error = grabError();
+$success = grabSuccess();
 
-/*
- *  Grab action
- */
-$action = null;
-if (filter_input(INPUT_POST, 'action') !== null)
-    $action = filter_input(INPUT_POST, 'action');
-
-if (filter_input(INPUT_GET, 'action') !== null)
-    $action = filter_input(INPUT_GET, 'action');
-
-/*
- * Control by action
- */
+// Controller
 switch ($action) {
-    /*
-     * Search by term
-     */
+
+    // GET Search for Problems
     case 'search':
-        include '../views/problems/problems.php';
+        $query = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_STRING);
+        $category = filter_input(INPUT_GET, 'category', FILTER_SANITIZE_NUMBER_INT);
 
-        $problem = new Problem(
-            isset($_GET['query']) ?
-                $_GET['query'] :
-                null,
-            isset($_GET['subject']) ?
-                $_GET['subject'] :
-                null,
-            null
-        );
+        $results = Problem::queryProblems($query, $category);
 
-        $results = $problem->queryProblems();
-        $question = new Page(getMeta(), renderBody($results));
-        echo $question->page;
+        echo Page::render(ProblemsView::getMeta(), ProblemsView::renderBody($results, $session, $success, $error));
+        setSuccess(null);
+        setError(null);
         break;
 
-    /*
-     *  GET Submit new problem thread
-     */
+    //  GET Create Problem
     case 'create':
-        include '../views/problems/create.php';
+        middleware(true, $session);
 
-        if (!isset($_SESSION['logged']) || !$_SESSION['logged']) {
-            header('Location: /index.php');
-            break;
-        }
-        $categoryQuery = new Query('subjects');
-        $categories = $categoryQuery->queryAll();
+        $categories = Category::queryAll();
 
-        if (isset($_GET['success']) && $_GET['success'])
-            $createProblem = new Page(getMeta(), renderBody($categories, true));
-        else
-            $createProblem = new Page(getMeta(), renderBody($categories, false));
-
-        echo $createProblem->page;
+        echo Page::render(CreateProblemView::getMeta(), CreateProblemView::renderBody($categories, $success, $error));
+        setSuccess(null);
+        setError(null);
         break;
 
-    /*
-    *  POST Create a new problem
-    */
+    // POST Create Problem
     case 'createProblem':
+        middleware(true, $session);
+
         $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-        $subject = filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_NUMBER_INT);
+        $category = filter_input(INPUT_POST, 'category', FILTER_SANITIZE_NUMBER_INT);
         $summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
 
-        $newProblem = new Problem($name, $subject, $summary);
-        $newProblem->create();
+        $results = Problem::create($session, $name, $category, $summary);
 
-        header("Location: /problems/index.php?action=search&query=$name");
+        if ($results) {
+            setSuccess(null);
+            setError(null);
+            header("Location: /problems/index.php?action=search&query=$name");
+        } else {
+            setSuccess(null);
+            setError("Could not retrieve results, please try again!");
+            header("Location: /index.php");
+        }
         break;
 
-    /*
-    *  POST Create a new problem
-    */
+    // POST Update a problem
     case 'updateProblem':
+        $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
         $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-        $subject = filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_NUMBER_INT);
+        $category = filter_input(INPUT_POST, 'category', FILTER_SANITIZE_NUMBER_INT);
         $summary = filter_input(INPUT_POST, 'summary', FILTER_SANITIZE_STRING);
 
-        $newProblem = new Problem($name, $subject, $summary);
-        $success = $newProblem->update();
+        $results = Problem::update($id, $name, $category, $summary);
 
-        header("Location: /problems/index.php?action=search&query=$name");
-        break;
-
-    /*
-    *  POST Create a new problem
-    */
-    case 'deleteProblem':
-        $id = filter_input(INPUT_POST, 'problemId', FILTER_SANITIZE_STRING);
-
-        $newProblem = new Problem(null, null, null);
-        $success = $newProblem->delete($id);
+        if ($results) {
+            setSuccess(null);
+            setError(null);
+        } else {
+            setSuccess(null);
+            setError("Could not update!");
+        }
 
         header("Location: /account/index.php?action=problems");
         break;
 
-    /*
-     * Return a query of all
-     */
+    // POST Delete Problem
+    case 'deleteProblem':
+        $id = filter_input(INPUT_POST, 'problemId', FILTER_SANITIZE_STRING);
+        $results = Problem::delete($id);
+
+        if ($results) {
+            setSuccess(null);
+            setError(null);
+        } else {
+            setSuccess(null);
+            setError("Could not delete!");
+        }
+
+        header("Location: /account/index.php?action=problems");
+        break;
+
+    // Show all problems
     default:
-        include '../views/problems/problems.php';
-
-        $problem = new Problem(null, null, null);
-
-        $results = $problem->queryProblems();
-        $question = new Page(getMeta(), renderBody($results));
-        echo $question->page;
+        $results = Problem::queryProblems();
+        echo Page::render(ProblemsView::getMeta(), ProblemsView::renderBody($results, $session, $success, $error));
+        setSuccess(null);
+        setError(null);
         break;
 }

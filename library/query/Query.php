@@ -2,45 +2,45 @@
 
 class Query extends Database
 {
-    function queryAll()
+    public function __construct(string $table)
     {
-        $sql = "SELECT $this->fields FROM $this->table";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $stmt->closeCursor();
-        return $results;
+        parent::__construct($table);
     }
 
-    function queryOne($id)
-    {
-        $sql = "SELECT $this->fields FROM $this->table WHERE id = :id";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        $stmt->closeCursor();
-        return $result;
+    function fields(array $fields) {
+        $this->fields = $fields;
+        $this->sql .= "SELECT ";
+
+        foreach ($fields as $field){
+            $this->sql .= "$field,";
+        }
+
+        $this->sql = rtrim($this->sql, ",");
+        $this->sql .= " FROM $this->table";
+
+        return $this;
     }
 
-    function queryByColumn($query, $column)
-    {
-        $sql = "SELECT $this->fields FROM $this->table WHERE LOWER($column) LIKE LOWER(:query)";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':query', '%' . $query . '%', PDO::PARAM_STR);
-        $stmt->execute();
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $stmt->closeCursor();
-        return $results;
-    }
-
-    function queryOneByColumn($query, $column)
-    {
-        $sql = "SELECT $this->fields FROM $this->table WHERE LOWER($column) LIKE LOWER(:query)";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':query', '%' . $query . '%', PDO::PARAM_STR);
+    function get() {
+        $stmt = $this->db->prepare($this->sql);
+        foreach ($this->params as $index => $param) {
+            $stmt->bindValue($index + 1, $param);
+        }
         $stmt->execute();
         $results = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        return $results;
+    }
+
+    function getAll() {
+        $stmt = $this->db->prepare($this->sql);
+
+        foreach ($this->params as $index => $param) {
+            $stmt->bindValue($index + 1, $param);
+        }
+
+        $stmt->execute();
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt->closeCursor();
         return $results;
     }

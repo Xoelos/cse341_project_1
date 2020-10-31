@@ -1,64 +1,29 @@
 <?php
 
-include_once './library/classes.php';
+include_once "$_SERVER[DOCUMENT_ROOT]/library/imports.php";
 
-if (session_id() == "")
-    session_start();
+startSession();
+$session = grabSession();
+$action = grabAction();
+$error = grabError();
+$success = grabSuccess();
 
-// Grab action
-$action = null;
-if (filter_input(INPUT_POST, 'action') !== null)
-    $action = filter_input(INPUT_POST, 'action');
-
-if (filter_input(INPUT_GET, 'action') !== null)
-    $action = filter_input(INPUT_GET, 'action');
-
-
+// Controller
 switch ($action) {
 
 // Show About page
     case 'about':
-        include './views/about.php';
-        $about = new Page(getMeta(), renderBody());
-
-        echo $about->page;
-        break;
-
-    // Show About page
-    case 'logout':
-        $categoryQuery = new Query('subjects');
-        $categories = $categoryQuery->queryAll();
-        $logout = true;
-
-        require './views/search.php';
-
-        $search = new Page(getMeta(), renderBody($categories, $logout));
-
-        echo $search->page;
-        break;
-
-    // Generic Error Page
-    case 'error':
-        $categoryQuery = new Query('subjects');
-        $categories = $categoryQuery->queryAll();
-        $error = true;
-
-        require './views/search.php';
-
-        $search = new Page(getMeta(), renderBody($categories, false, $error));
-
-        echo $search->page;
+        echo Page::render(AboutView::getMeta(), AboutView::renderBody($success, $error));
+        setSuccess(null);
+        setError(null);
         break;
 
 // Show default search page
     default:
-        $categoryQuery = new Query('subjects');
-        $categories = $categoryQuery->queryAll();
+        $categories = Category::queryAll();
 
-        require './views/search.php';
-
-        $search = new Page(getMeta(), renderBody($categories));
-
-        echo $search->page;
+        echo Page::render(SearchView::getMeta(), SearchView::renderBody($categories, $success, $error));
+        setSuccess(null);
+        setError(null);
         break;
 }
