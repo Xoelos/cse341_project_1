@@ -28,6 +28,7 @@ include_once "$_SERVER[DOCUMENT_ROOT]/library/query/UserQuery.php";
 
 // Models
 include_once "$_SERVER[DOCUMENT_ROOT]/models/Problem.php";
+include_once "$_SERVER[DOCUMENT_ROOT]/models/Vote.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/models/User.php";
 include_once "$_SERVER[DOCUMENT_ROOT]/models/Category.php";
 

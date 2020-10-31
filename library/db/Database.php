@@ -38,11 +38,33 @@ class Database
         return $this;
     }
 
-    function pushToParams($param, bool $wild = false) {
-        if($wild)
-            array_push($this->params, "%$param%");
+    function groupBy(array $columns) {
+        $this->sql .= " GROUP BY ";
+
+        foreach ($columns as $column) {
+            $this->sql .= "$column, ";
+        }
+
+        $this->sql = rtrim($this->sql, ', ');
+        $this->sql .= " ";
+        return $this;
+    }
+
+    function orderBy(string $column, bool $asc) {
+        if($asc)
+            $this->sql .= "ORDER BY $column ASC";
         else
-            array_push($this->params, $param);
+            $this->sql .= "ORDER BY $column DESC";
+        return $this;
+    }
+
+    function pushToParams(array $params, array $wilds) {
+        foreach ($params as $index => $param) {
+                if ($wilds[$index])
+                    array_push($this->params, "%$param%");
+                else
+                    array_push($this->params, $param);
+        }
         return $this;
     }
 }

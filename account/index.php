@@ -36,7 +36,7 @@ switch ($action) {
         if ($id) {
             $_SESSION['logged'] = $id;
             $_SESSION['name'] = $firstName;
-            setSuccess(null);
+            setSuccess("You have successfully registered!");
             setError(null);
             header('Location: /account/index.php');
         } else {

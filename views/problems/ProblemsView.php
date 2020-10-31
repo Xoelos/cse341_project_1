@@ -35,21 +35,24 @@ class ProblemsView extends View
 
         if ($results && count($results) > 0) {
             foreach ($results as $result) {
-                $body .= '<div class="col-12 my-3">
-                    <h3>' . $result['name'] . '</h3>
-                    <h5>' . $result['category'] . '</h5>
-                    <p>' . $result['summary'] . '</p>';
+                $body .= "<div class='col-12 my-3'>
+                    <h3>$result[name]</h3>
+                    <h5>$result[category]</h5>
+                    <p>$result[summary]</p>
+                    <form method='POST' action='/problems/index.php'>
+                    <input type='hidden' name='action' value='vote'>
+                    <input type='hidden' name='problemId' value='$result[id]'>";
 
-                    $body .= $result['created_by'] == $session
-                        ? '<button type="button" class="btn btn-link"><i class="fa fa-thumbs-o-up" style="font-size:24px"></i></button>'
-                        : '<button type="button" class="btn btn-link"><i class="fa fa-thumbs-up" style="font-size:24px"></i></button>';
+
+                $body .= ($result['upvote'] === 1)
+                    ? "<button type='submit' class='btn btn-link text-decoration-none' name='upvote' value='1'><i class='fa fa-thumbs-up' style='font-size:24px'></i>&nbsp;$result[total_upvotes]</input>"
+                    : "<button type='submit' class='btn btn-link text-decoration-none' name='upvote' value='1'><i class='fa fa-thumbs-o-up' style='font-size:24px'></i>&nbsp;$result[total_upvotes]</input>";
 
 
-                    $body .= $result['created_by'] == $session
-                        ? '<button type="button" class="btn btn-link"><i class="fa fa-thumbs-o-down" style="font-size:24px"></i></button>'
-                        : '<button type="button" class="btn btn-link"><i class="fa fa-thumbs-down" style="font-size:24px"></i></button>';
-
-                $body .= '</div>';
+                $body .= ($result['upvote'] === 0)
+                    ? "<button type='submit' class='btn btn-link text-decoration-none' name='upvote' value='0'><i class='fa fa-thumbs-down' style='font-size:24px'></i>&nbsp;$result[total_downvotes]</input>"
+                    : "<button type='submit' class='btn btn-link text-decoration-none' name='upvote' value='0'><i class='fa fa-thumbs-o-down' style='font-size:24px'></i>&nbsp;$result[total_downvotes]</input>";
+                $body .= '</form></div>';
             }
         } else {
             $body .= '<div class="col-12 mt-4 text-center">

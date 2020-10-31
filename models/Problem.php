@@ -30,7 +30,7 @@ class Problem
             ->getAll();
     }
 
-    public static function queryProblems($name = null, $category = null)
+    public static function queryProblems($session, $name = null, $category = null)
     {
         $query = new Query('problems');
 
@@ -39,30 +39,28 @@ class Problem
             'problems.created_by',
             'problems.name',
             'problems.summary',
-            'categories.name AS category'
-        ]);
-
-        $query->join('categories', 'id', 'category_id');
+            'categories.name AS category',
+            '(SELECT COUNT(v.voter_id) FROM votes v WHERE v.upvote = 1 AND v.problem_id = problems.id GROUP BY v.problem_id) AS total_upvotes',
+            '(SELECT COUNT(v.voter_id) FROM votes v WHERE v.upvote = 0 AND v.problem_id = problems.id GROUP BY v.problem_id) AS total_downvotes',
+            '(SELECT v.upvote FROM votes v JOIN problems p2 ON v.problem_id = p2.id WHERE v.voter_id = ? AND v.problem_id = problems.id LIMIT 1) AS upvote',
+        ])->join('categories', 'id', 'category_id');
 
         if ($name && $category) {
-            return $query->statement(" WHERE ((LOWER(problems.name) LIKE LOWER(?) ")
+            $query->statement(" WHERE ((LOWER(problems.name) LIKE LOWER(?) ")
                 ->statement("OR LOWER(problems.summary) LIKE LOWER(?)) ")
-                ->statement("AND categories.id = ?)")
-                ->pushToParams($name, true)
-                ->pushToParams($name, true)
-                ->pushToParams($category)
-                ->getAll();
+                ->statement("AND categories.id = ? ");
         } else if ($name) {
-            return $query->statement(' WHERE (LOWER(problems.name) LIKE LOWER(?) OR LOWER(problems.summary) LIKE LOWER(?)) ')
-                ->pushToParams($name, true)
-                ->pushToParams($name, true)
-                ->getAll();
+            $query->statement(' WHERE (LOWER(problems.name) LIKE LOWER(?) OR LOWER(problems.summary) LIKE LOWER(?)) ');
         } else if ($category) {
-            return $query->where('categories.id', '=', $category)
-                ->getAll();
-        } else {
-            return $query->getAll();
+             $query->where('categories.id', '=', $category);
         }
+
+        return $query->pushToParams([$session], [false])
+        ->groupBy(['problems.id', 'categories.name'])
+        ->orderBy('total_upvotes', false)
+        ->statement('NULLS LAST, problems.name ASC')
+        ->getAll();
+
     }
 
     public static function update(int $id, string $name, int $category, string $summary)

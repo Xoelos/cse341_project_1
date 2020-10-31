@@ -16,7 +16,7 @@ switch ($action) {
         $query = filter_input(INPUT_GET, 'query', FILTER_SANITIZE_STRING);
         $category = filter_input(INPUT_GET, 'category', FILTER_SANITIZE_NUMBER_INT);
 
-        $results = Problem::queryProblems($query, $category);
+        $results = Problem::queryProblems($session, $query, $category);
 
         echo Page::render(ProblemsView::getMeta(), ProblemsView::renderBody($results, $session, $success, $error));
         setSuccess(null);
@@ -91,9 +91,29 @@ switch ($action) {
         header("Location: /account/index.php?action=problems");
         break;
 
+    // POST Add or Update Vote
+    case 'vote':
+        middleware(true, $session);
+
+        $problem_id = filter_input(INPUT_POST, 'problemId', FILTER_SANITIZE_STRING);
+        $upvote = filter_input(INPUT_POST, 'upvote', FILTER_SANITIZE_NUMBER_INT);
+
+        $results = Vote::upvoteProblem($upvote, $problem_id, $session);
+
+        if ($results) {
+            setSuccess(null);
+            setError(null);
+        } else {
+            setSuccess(null);
+            setError("Error!");
+        }
+
+        header("Location: /problems/index.php");
+        break;
+
     // Show all problems
     default:
-        $results = Problem::queryProblems();
+        $results = Problem::queryProblems($session);
         echo Page::render(ProblemsView::getMeta(), ProblemsView::renderBody($results, $session, $success, $error));
         setSuccess(null);
         setError(null);
