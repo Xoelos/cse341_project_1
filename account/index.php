@@ -115,6 +115,7 @@ switch ($action) {
 
         $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
         $passwordConfirmation = filter_input(INPUT_POST, 'passwordConfirmation', FILTER_SANITIZE_STRING);
+
         $hashedPassword = User::passwordCheck($password, $passwordConfirmation);
 
 

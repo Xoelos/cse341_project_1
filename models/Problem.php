@@ -43,22 +43,24 @@ class Problem
             '(SELECT COUNT(v.voter_id) FROM votes v WHERE v.upvote = 1 AND v.problem_id = problems.id GROUP BY v.problem_id) AS total_upvotes',
             '(SELECT COUNT(v.voter_id) FROM votes v WHERE v.upvote = 0 AND v.problem_id = problems.id GROUP BY v.problem_id) AS total_downvotes',
             '(SELECT v.upvote FROM votes v JOIN problems p2 ON v.problem_id = p2.id WHERE v.voter_id = ? AND v.problem_id = problems.id LIMIT 1) AS upvote',
-        ])->join('categories', 'id', 'category_id');
+        ])->join('categories', 'id', 'category_id')
+            ->pushToParams([$session], [false]);
 
         if ($name && $category) {
-            $query->statement(" WHERE ((LOWER(problems.name) LIKE LOWER(?) ")
+            $query->statement(" WHERE (LOWER(problems.name) LIKE LOWER(?) ")
                 ->statement("OR LOWER(problems.summary) LIKE LOWER(?)) ")
-                ->statement("AND categories.id = ? ");
+                ->statement("AND categories.id = ? ")
+                ->pushToParams([$name, $name, $category], [true, true, false]);
         } else if ($name) {
-            $query->statement(' WHERE (LOWER(problems.name) LIKE LOWER(?) OR LOWER(problems.summary) LIKE LOWER(?)) ');
+            $query->statement(' WHERE (LOWER(problems.name) LIKE LOWER(?) OR LOWER(problems.summary) LIKE LOWER(?)) ')
+                ->pushToParams([$name, $name], [true, true]);
         } else if ($category) {
-             $query->where('categories.id', '=', $category);
+             $query->where('problems.category_id', '=', $category);
         }
 
-        return $query->pushToParams([$session], [false])
-        ->groupBy(['problems.id', 'categories.name'])
+        return $query->groupBy(['problems.id', 'categories.id'])
         ->orderBy('total_upvotes', false)
-        ->statement('NULLS LAST, problems.name ASC')
+        ->statement('NULLS LAST, total_downvotes ASC NULLS LAST, problems.name ASC')
         ->getAll();
 
     }

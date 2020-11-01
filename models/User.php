@@ -69,7 +69,7 @@ class User
 
         return $update->fields(['password'])
             ->where('id', '=', $session)
-            ->update([$password]);
+            ->update([$password, $session]);
     }
 
     public static function passwordCheck($p, $p2)
